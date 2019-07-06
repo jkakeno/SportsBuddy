@@ -1,0 +1,102 @@
+package com.junkakeno.sportsbuddy.View;
+
+import android.content.Context;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.junkakeno.sportsbuddy.InteractionListener;
+import com.junkakeno.sportsbuddy.Model.Teams;
+import com.junkakeno.sportsbuddy.Model.TeamsItem;
+import com.junkakeno.sportsbuddy.R;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
+
+
+public class FavoriteTeamAdapter extends RecyclerView.Adapter<FavoriteTeamAdapter.ViewHolder> {
+
+    Context context;
+    ArrayList<TeamsItem> teams;
+    InteractionListener listener;
+
+    public FavoriteTeamAdapter(Context context, ArrayList<TeamsItem> teams, InteractionListener listener) {
+        this.context = context;
+        this.teams = teams;
+        this.listener = listener;
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.team_item, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+
+        final TeamsItem team = teams.get(position);
+        holder.teamName.setText(team.getStrTeam());
+        final String badge = team.getStrTeamBadge();
+        if(badge!=null) {
+            Picasso.with(context).load(badge).fetch(new Callback() {
+                @Override
+                public void onSuccess() {
+                    Picasso.with(context).load(badge).into(holder.icon);
+                }
+
+                @Override
+                public void onError() {
+                    holder.icon.setImageResource(R.drawable.ic_default_icon);
+                }
+            });
+        }else{
+            holder.icon.setImageResource(R.drawable.ic_default_icon);
+        }
+
+
+        holder.view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.onFavoriteTeamSelectInteraction(team);
+            }
+        });
+
+    }
+
+    @Override
+    public int getItemCount() {
+        if(teams !=null) {
+            return teams.size();
+        }else{
+            return 1;
+        }
+    }
+
+
+
+public class ViewHolder extends RecyclerView.ViewHolder {
+
+    private TextView teamName;
+    private ImageView arrow;
+    private ImageView icon;
+    View view;
+
+    public ViewHolder(View itemView) {
+        super(itemView);
+        teamName = (TextView) itemView.findViewById(R.id.list_item_team_name);
+        arrow = (ImageView) itemView.findViewById(R.id.list_item_team_arrow);
+        icon = (ImageView) itemView.findViewById(R.id.list_item_team_icon);
+        view = (View) itemView.findViewById(R.id.list_item_team);
+
+    }
+}
+
+
+
+}

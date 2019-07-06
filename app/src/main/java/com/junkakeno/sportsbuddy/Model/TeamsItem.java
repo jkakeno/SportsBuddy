@@ -1,10 +1,15 @@
 package com.junkakeno.sportsbuddy.Model;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class TeamsItem{
+import java.util.ArrayList;
+
+public class TeamsItem implements Parcelable{
 
 	@SerializedName("intStadiumCapacity")
 	@Expose
@@ -205,6 +210,92 @@ public class TeamsItem{
 	@SerializedName("strDescriptionPL")
 	@Expose
 	private Object strDescriptionPL;
+
+	boolean isFavorite;
+
+	ArrayList<EventsItem> teamEvents;
+
+
+	protected TeamsItem(Parcel in) {
+		intStadiumCapacity = in.readString();
+		strTeamShort = in.readString();
+		strSport = in.readString();
+		strTeamJersey = in.readString();
+		strTeamFanart2 = in.readString();
+		strTeamFanart3 = in.readString();
+		strTeamFanart4 = in.readString();
+		strStadiumDescription = in.readString();
+		strTeamFanart1 = in.readString();
+		intLoved = in.readString();
+		idLeague = in.readString();
+		idSoccerXML = in.readString();
+		strTeamLogo = in.readString();
+		strStadiumLocation = in.readString();
+		strCountry = in.readString();
+		strRSS = in.readString();
+		strTeamBanner = in.readString();
+		strStadiumThumb = in.readString();
+		intFormedYear = in.readString();
+		strInstagram = in.readString();
+		strDescriptionIT = in.readString();
+		idTeam = in.readString();
+		strDescriptionEN = in.readString();
+		strWebsite = in.readString();
+		strYoutube = in.readString();
+		strLocked = in.readString();
+		strAlternate = in.readString();
+		strTeam = in.readString();
+		strTwitter = in.readString();
+		strGender = in.readString();
+		strStadium = in.readString();
+		strFacebook = in.readString();
+		strTeamBadge = in.readString();
+		strDescriptionDE = in.readString();
+		strLeague = in.readString();
+		strManager = in.readString();
+		strKeywords = in.readString();
+		isFavorite = in.readByte() != 0;
+		teamEvents = in.createTypedArrayList(EventsItem.CREATOR);
+	}
+
+	public static final Creator<TeamsItem> CREATOR = new Creator<TeamsItem>() {
+		@Override
+		public TeamsItem createFromParcel(Parcel in) {
+			return new TeamsItem(in);
+		}
+
+		@Override
+		public TeamsItem[] newArray(int size) {
+			return new TeamsItem[size];
+		}
+	};
+
+	public boolean isFavorite() {
+		return isFavorite;
+	}
+
+	public void setFavorite(boolean favorite) {
+		isFavorite = favorite;
+	}
+
+
+	public ArrayList<EventsItem> getTeamEvents() {
+		return teamEvents;
+	}
+
+	public void resetTeamEvent(){
+		teamEvents = new ArrayList<>();
+	}
+
+	public void addTeamEvent(Events events){
+		for(EventsItem event:events.getEvents()) {
+			teamEvents.add(event);
+		}
+	}
+
+	public void setTeamEvents(ArrayList<EventsItem> teamEvents) {
+		this.teamEvents = teamEvents;
+	}
 
 	public void setIntStadiumCapacity(String intStadiumCapacity){
 		this.intStadiumCapacity = intStadiumCapacity;
@@ -604,5 +695,54 @@ public class TeamsItem{
 
 	public Object getStrDescriptionPL(){
 		return strDescriptionPL;
+	}
+
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel parcel, int i) {
+		parcel.writeString(intStadiumCapacity);
+		parcel.writeString(strTeamShort);
+		parcel.writeString(strSport);
+		parcel.writeString(strTeamJersey);
+		parcel.writeString(strTeamFanart2);
+		parcel.writeString(strTeamFanart3);
+		parcel.writeString(strTeamFanart4);
+		parcel.writeString(strStadiumDescription);
+		parcel.writeString(strTeamFanart1);
+		parcel.writeString(intLoved);
+		parcel.writeString(idLeague);
+		parcel.writeString(idSoccerXML);
+		parcel.writeString(strTeamLogo);
+		parcel.writeString(strStadiumLocation);
+		parcel.writeString(strCountry);
+		parcel.writeString(strRSS);
+		parcel.writeString(strTeamBanner);
+		parcel.writeString(strStadiumThumb);
+		parcel.writeString(intFormedYear);
+		parcel.writeString(strInstagram);
+		parcel.writeString(strDescriptionIT);
+		parcel.writeString(idTeam);
+		parcel.writeString(strDescriptionEN);
+		parcel.writeString(strWebsite);
+		parcel.writeString(strYoutube);
+		parcel.writeString(strLocked);
+		parcel.writeString(strAlternate);
+		parcel.writeString(strTeam);
+		parcel.writeString(strTwitter);
+		parcel.writeString(strGender);
+		parcel.writeString(strStadium);
+		parcel.writeString(strFacebook);
+		parcel.writeString(strTeamBadge);
+		parcel.writeString(strDescriptionDE);
+		parcel.writeString(strLeague);
+		parcel.writeString(strManager);
+		parcel.writeString(strKeywords);
+		parcel.writeByte((byte) (isFavorite ? 1 : 0));
+		parcel.writeTypedList(teamEvents);
 	}
 }

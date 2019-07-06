@@ -18,4 +18,13 @@ public class ApiUtils {
                 .build();
         return retrofit.create(ApiInterface.class);
     }
+
+    public static ApiInterface thesportsdbInterface2(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        return retrofit.create(ApiInterface.class);
+    }
 }

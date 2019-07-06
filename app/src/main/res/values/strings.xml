@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">SportsBuddy</string>
+    <string name="title_home">Home</string>
+    <string name="title_favorite">Favorite</string>
+    <string name="tab_1">Tab 1</string>
+    <string name="tab_2">Tab 2</string>
+    <string name="error_title">Error</string>
+    <string name="info_title">Information</string>
+    <string name="alert_button">Dismiss</string>
+    <string name="error_type">error</string>
+    <string name="info_type">info</string>
+    <string name="api_call_error_msg">Sorry something went wrong when downloading data. </string>
+    <string name="no_content_msg">Sorry there\'s no content available to display for this selection. Please select another one.</string>
+    <string name="no_favorites_msg">There aren\'t favorites saved</string>
+    <string name="counrty_title">Country: </string>
+    <string name="league_title">League: </string>
+    <string name="founded_year_title">Founded: </string>
+    <string name="team_tab_title">Teams</string>
+    <string name="matches_tab_title">Matches</string>
+
 </resources>

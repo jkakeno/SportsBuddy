@@ -1,10 +1,13 @@
 package com.junkakeno.sportsbuddy.Model;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class EventsItem{
+public class EventsItem implements Parcelable {
 
 	@SerializedName("intHomeShots")
 	@Expose
@@ -229,6 +232,134 @@ public class EventsItem{
 	@SerializedName("strPoster")
 	@Expose
 	private Object strPoster;
+
+	String homeBadge;
+
+	String awayBadge;
+
+	public String getHomeBadge() {
+		return homeBadge;
+	}
+
+	public void setHomeBadge(String homeBadge) {
+		this.homeBadge = homeBadge;
+	}
+
+	public String getAwayBadge() {
+		return awayBadge;
+	}
+
+	public void setAwayBadge(String awayBadge) {
+		this.awayBadge = awayBadge;
+	}
+
+	protected EventsItem(Parcel in) {
+		intHomeShots = in.readString();
+		strSport = in.readString();
+		strHomeLineupDefense = in.readString();
+		strAwayLineupSubstitutes = in.readString();
+		idLeague = in.readString();
+		idSoccerXML = in.readString();
+		strHomeLineupForward = in.readString();
+		strHomeGoalDetails = in.readString();
+		strAwayLineupGoalkeeper = in.readString();
+		strAwayLineupMidfield = in.readString();
+		idEvent = in.readString();
+		intRound = in.readString();
+		strHomeYellowCards = in.readString();
+		idHomeTeam = in.readString();
+		intHomeScore = in.readString();
+		dateEvent = in.readString();
+		strAwayTeam = in.readString();
+		strHomeLineupMidfield = in.readString();
+		strDate = in.readString();
+		strHomeFormation = in.readString();
+		idAwayTeam = in.readString();
+		strAwayRedCards = in.readString();
+		intAwayShots = in.readString();
+		strFilename = in.readString();
+		strTime = in.readString();
+		strAwayGoalDetails = in.readString();
+		strAwayLineupForward = in.readString();
+		strLocked = in.readString();
+		strSeason = in.readString();
+		intSpectators = in.readString();
+		strHomeRedCards = in.readString();
+		strHomeLineupGoalkeeper = in.readString();
+		strHomeLineupSubstitutes = in.readString();
+		strAwayFormation = in.readString();
+		strEvent = in.readString();
+		strAwayYellowCards = in.readString();
+		strAwayLineupDefense = in.readString();
+		strHomeTeam = in.readString();
+		strLeague = in.readString();
+		intAwayScore = in.readString();
+		homeBadge = in.readString();
+		awayBadge = in.readString();
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(intHomeShots);
+		dest.writeString(strSport);
+		dest.writeString(strHomeLineupDefense);
+		dest.writeString(strAwayLineupSubstitutes);
+		dest.writeString(idLeague);
+		dest.writeString(idSoccerXML);
+		dest.writeString(strHomeLineupForward);
+		dest.writeString(strHomeGoalDetails);
+		dest.writeString(strAwayLineupGoalkeeper);
+		dest.writeString(strAwayLineupMidfield);
+		dest.writeString(idEvent);
+		dest.writeString(intRound);
+		dest.writeString(strHomeYellowCards);
+		dest.writeString(idHomeTeam);
+		dest.writeString(intHomeScore);
+		dest.writeString(dateEvent);
+		dest.writeString(strAwayTeam);
+		dest.writeString(strHomeLineupMidfield);
+		dest.writeString(strDate);
+		dest.writeString(strHomeFormation);
+		dest.writeString(idAwayTeam);
+		dest.writeString(strAwayRedCards);
+		dest.writeString(intAwayShots);
+		dest.writeString(strFilename);
+		dest.writeString(strTime);
+		dest.writeString(strAwayGoalDetails);
+		dest.writeString(strAwayLineupForward);
+		dest.writeString(strLocked);
+		dest.writeString(strSeason);
+		dest.writeString(intSpectators);
+		dest.writeString(strHomeRedCards);
+		dest.writeString(strHomeLineupGoalkeeper);
+		dest.writeString(strHomeLineupSubstitutes);
+		dest.writeString(strAwayFormation);
+		dest.writeString(strEvent);
+		dest.writeString(strAwayYellowCards);
+		dest.writeString(strAwayLineupDefense);
+		dest.writeString(strHomeTeam);
+		dest.writeString(strLeague);
+		dest.writeString(intAwayScore);
+		dest.writeString(homeBadge);
+		dest.writeString(awayBadge);
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	public static final Creator<EventsItem> CREATOR = new Creator<EventsItem>() {
+		@Override
+		public EventsItem createFromParcel(Parcel in) {
+			return new EventsItem(in);
+		}
+
+		@Override
+		public EventsItem[] newArray(int size) {
+			return new EventsItem[size];
+		}
+	};
 
 	public void setIntHomeShots(String intHomeShots){
 		this.intHomeShots = intHomeShots;

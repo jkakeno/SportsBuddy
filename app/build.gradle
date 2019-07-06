@@ -31,6 +31,9 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:cardview-v7:27.1.1'
 
+    //expandable
+    implementation 'com.thoughtbot:expandablerecyclerview:1.3'
+
     /*Picasso*/
     implementation 'com.squareup.picasso:picasso:2.5.2'
     /*Retrofit*/
