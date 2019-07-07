@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SportsBuddy</string>
+    <string name="app_name">Sports Buddy</string>
     <string name="title_home">Home</string>
     <string name="title_favorite">Favorite</string>
     <string name="error_title">Error</string>

@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
 
         favoriteList = db.getFavorites();
 
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
 
         ContainerFragment containerFragment = new ContainerFragment();
         fragmentManager.beginTransaction().replace(R.id.root, containerFragment, CONTAINER_FRAGMENT)
@@ -106,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
             public void onResponse(Call<Sports> call, Response<Sports> response) {
                 if(response.isSuccessful()){
                     sportsList = response.body();
+                    progressDialog.cancel();
                     setupHomeScreen(sportsList.getDefaultSport());
                 }else{
                     showDialog(getResources().getString(R.string.error_type),
@@ -176,6 +178,11 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     public void onLeagueSelectInteraction(CountrysItem league) {
         Log.d(TAG,"Selected: " + league.getStrLeague() + " id: " + league.getIdLeague());
 
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
+
         //Get the selected league's teams and events
         Observable<Teams> teamsObservable = apiInterface.getLeagueTeams(league.getIdLeague())
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
@@ -194,7 +201,6 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
              @Override
              public void onSubscribe(Disposable d) {
                 teamsAndEventsDisposable = d;
-                 progressDialog.show(fragmentManager,PROGRESS_DIALOG);
              }
 
              @Override
@@ -244,7 +250,10 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
 
     @Override
     public void onSeasonSelectInteraction(String season, String leagueId, final TeamsItem team) {
-        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
 
         apiInterface.getLeagueSeasonEvents(leagueId,season).enqueue(new Callback<Events>() {
             @Override
@@ -298,7 +307,10 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     @Override
     public void onTeamSelectInteraction(final TeamsItem team) {
         Log.d(TAG,"Selected: " + team.getStrTeam() + " id: " + team.getIdTeam());
-        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
         apiInterface.getLeagueSeasons(team.getIdLeague()).enqueue(new Callback<Seasons>() {
             @Override
             public void onResponse(Call<Seasons> call, Response<Seasons> response) {
@@ -365,7 +377,10 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     public void onFavoriteTeamSelectInteraction(final TeamsItem team) {
         Log.d(TAG,"Selected: " + team.getStrTeam());
 
-        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
 
         //Get the selected league's teams and events
         Observable<Teams> teamsObservable = apiInterface.getLeagueTeams(team.getIdLeague())
@@ -463,8 +478,6 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     public void onBackInteraction(String tag) {
         Log.d(TAG,"Go back");
         if(tag.equals(LEAGUE_DETAIL_FRAGMENT)){
-            fragmentManager.popBackStackImmediate();
-
             if(sport!=null){
                 setupHomeScreen(sport);
             }else{
@@ -522,8 +535,12 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     }
 
     public void setupHomeScreen(String sport){
-        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitleTextColor(getResources().getColor(R.color.colorWhite));
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
@@ -565,7 +582,10 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     }
 
     public void updateHomeScreen(String sport){
-        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
         apiInterface.getLeagues(sport).enqueue(new Callback<Countries>() {
             @Override
             public void onResponse(Call<Countries> call, Response<Countries> response) {
@@ -593,7 +613,10 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     }
 
     private void setupFavoriteScreen() {
-        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
+        if(progress!=null&&!progress.isAdded()) {
+            progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
