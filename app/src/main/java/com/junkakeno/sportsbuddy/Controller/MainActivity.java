@@ -1,7 +1,6 @@
 package com.junkakeno.sportsbuddy.Controller;
 
 import android.content.DialogInterface;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
@@ -13,7 +12,6 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.LinearLayout;
 
 import com.junkakeno.sportsbuddy.Database.Database;
 import com.junkakeno.sportsbuddy.InteractionListener;
@@ -22,7 +20,6 @@ import com.junkakeno.sportsbuddy.Model.CountrysItem;
 import com.junkakeno.sportsbuddy.Model.Events;
 import com.junkakeno.sportsbuddy.Model.EventsItem;
 import com.junkakeno.sportsbuddy.Model.Seasons;
-import com.junkakeno.sportsbuddy.Model.SeasonsItem;
 import com.junkakeno.sportsbuddy.Model.Sports;
 import com.junkakeno.sportsbuddy.Model.Teams;
 import com.junkakeno.sportsbuddy.Model.TeamsAndEvents;
@@ -34,12 +31,12 @@ import com.junkakeno.sportsbuddy.View.FavoriteTeamDetailFragment;
 import com.junkakeno.sportsbuddy.View.LeagueDetailFragment;
 import com.junkakeno.sportsbuddy.View.LeagueListFragment;
 import com.junkakeno.sportsbuddy.View.FavoriteListFragment;
+import com.junkakeno.sportsbuddy.View.ProgressBarDialog;
 import com.junkakeno.sportsbuddy.View.SportFragment;
 import com.junkakeno.sportsbuddy.View.ContainerFragment;
 import com.junkakeno.sportsbuddy.View.TeamDetailFragment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
@@ -59,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
 
     //1st layer
     private static final String SPLASH_FRAGMENT = "splashFragment";
+    private static final String PROGRESS_DIALOG = ProgressBarDialog.class.getSimpleName();
     private static final String CONTAINER_FRAGMENT = ContainerFragment.class.getSimpleName();
     private static final String SPORT_FRAGMENT = SportFragment.class.getSimpleName();
     private static final String LEAGUE_LIST_FRAGMENT = LeagueListFragment.class.getSimpleName();
@@ -77,14 +75,13 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     String sport;
     FragmentManager fragmentManager;
     Disposable teamsAndEventsDisposable;
-    Disposable leagueEventsDisposable;
     Disposable favoriteTeamsDisposable;
-    Disposable teamSeasonDisposable;
     ActionBar actionBar;
     Database db;
     ArrayList<String> favoriteList;
     ArrayList<TeamsItem> favoriteTeams;
-    String season;
+    ProgressBarDialog progressDialog = new ProgressBarDialog();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +107,10 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 if(response.isSuccessful()){
                     sportsList = response.body();
                     setupHomeScreen(sportsList.getDefaultSport());
+                }else{
+                    showDialog(getResources().getString(R.string.error_type),
+                            getResources().getString(R.string.api_response_not_successful_msg));
+                    progressDialog.cancel();
                 }
             }
 
@@ -128,15 +129,17 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
         if(teamsAndEventsDisposable != null){
             teamsAndEventsDisposable.dispose();
         }
-        if(leagueEventsDisposable != null){
-            leagueEventsDisposable.dispose();
-        }
         if(favoriteTeamsDisposable !=null){
             favoriteTeamsDisposable.dispose();
         }
-        if(teamSeasonDisposable !=null){
-            teamSeasonDisposable.dispose();
-        }
+    }
+
+    //To solve Transaction Too Large Exception when presing home button
+    //https://stackoverflow.com/questions/39098590/android-os-transactiontoolargeexception-on-nougat
+    @Override
+    protected void onSaveInstanceState(Bundle oldInstanceState) {
+        super.onSaveInstanceState(oldInstanceState);
+        oldInstanceState.clear();
     }
 
     @Override
@@ -191,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
              @Override
              public void onSubscribe(Disposable d) {
                 teamsAndEventsDisposable = d;
+                 progressDialog.show(fragmentManager,PROGRESS_DIALOG);
              }
 
              @Override
@@ -209,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
              public void onError(Throwable e) {
                  showDialog(getResources().getString(R.string.error_type),
                          getResources().getString(R.string.api_call_error_msg)+e.getMessage());
+                 progressDialog.cancel();
              }
 
              @Override
@@ -225,9 +230,11 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                              .replace(containerFragment.getId(), leagueDetailFragment, LEAGUE_DETAIL_FRAGMENT)
                              .addToBackStack(CONTAINER_FRAGMENT).commit();
                      actionBar.hide();
+                     progressDialog.cancel();
                  }else{
                      showDialog(getResources().getString(R.string.info_type),
                              getResources().getString(R.string.no_content_msg));
+                     progressDialog.cancel();
                  }
 
              }
@@ -237,26 +244,19 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
 
     @Override
     public void onSeasonSelectInteraction(String season, String leagueId, final TeamsItem team) {
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
 
         apiInterface.getLeagueSeasonEvents(leagueId,season).enqueue(new Callback<Events>() {
             @Override
             public void onResponse(Call<Events> call, Response<Events> response) {
                 if(response.isSuccessful()){
 
-                    Events eventsList = response.body();
+                    eventsList = response.body();
 
-                    ArrayList<EventsItem> events = new ArrayList<>();
+                    //NOTE: Using Event object helper method to filter the events only containing the selected team
+                    eventsList.setTeamEvents(team);
 
-                    for(EventsItem event:eventsList.getEvents()){
-                        if(event.getStrHomeTeam().equals(team.getStrTeam())){
-                            events.add(event);
-                        }
-                        if(event.getStrAwayTeam().equals(team.getStrTeam())){
-                            events.add(event);
-                        }
-                    }
-
-                    eventsList.setEvents(events);
+                    setTeamsBadges();
 
                     Fragment teamDetailFrg = fragmentManager.findFragmentByTag(TEAM_DETAIL_FRAGMENT);
                     Fragment favoriteTeamDetailFrg = fragmentManager.findFragmentByTag(FAVORITE_TEAM_DETAIL_FRAGMENT);
@@ -267,6 +267,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                         fragmentManager.beginTransaction()
                                 .replace(leagueDetailFragment.getId(), teamDetailFragment, TEAM_DETAIL_FRAGMENT)
                                 .addToBackStack(LEAGUE_DETAIL_FRAGMENT).commit();
+                        progressDialog.cancel();
                     }
 
                     if(favoriteTeamDetailFrg!=null&&favoriteTeamDetailFrg.isVisible()) {
@@ -276,15 +277,20 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                                 .replace(favoriteListFragment.getId(), favoriteTeamDetailFragment, FAVORITE_TEAM_DETAIL_FRAGMENT)
                                 .addToBackStack(FAVORITE_LIST_FRAGMENT).commit();
                         actionBar.hide();
+                        progressDialog.cancel();
                     }
                 }else{
-
+                    showDialog(getResources().getString(R.string.error_type),
+                            getResources().getString(R.string.api_response_not_successful_msg));
+                    progressDialog.cancel();
                 }
             }
 
             @Override
             public void onFailure(Call<Events> call, Throwable t) {
-
+                showDialog(getResources().getString(R.string.error_type),
+                        getResources().getString(R.string.api_call_error_msg)+t.getMessage());
+                progressDialog.cancel();
             }
         });
     }
@@ -292,30 +298,19 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     @Override
     public void onTeamSelectInteraction(final TeamsItem team) {
         Log.d(TAG,"Selected: " + team.getStrTeam() + " id: " + team.getIdTeam());
-
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
         apiInterface.getLeagueSeasons(team.getIdLeague()).enqueue(new Callback<Seasons>() {
             @Override
             public void onResponse(Call<Seasons> call, Response<Seasons> response) {
                 if(response.isSuccessful()){
                     seasonsList = response.body();
 
-                    //Filter the event list for events only containing the selected team
-                    //NOTE: Team badge and events without team have been excluded before this stage to use the stored event property to minimize user data usage.
-
+                    //NOTE: Using Event object helper method to filter the events only containing the selected team
                     eventsList.setTeamEvents(team);
 
-                    setTeamFavoriteStatus(team);
+                    setTeamsBadges();
 
-                    for(EventsItem event:eventsList.getEvents()){
-                        for (TeamsItem team:teamsList.getTeams()){
-                            if(event.getStrHomeTeam().equals(team.getStrTeam())){
-                                event.setHomeBadge(team.getStrTeamBadge());
-                            }
-                            if(event.getStrAwayTeam().equals(team.getStrTeam())){
-                                event.setAwayBadge(team.getStrTeamBadge());
-                            }
-                        }
-                    }
+                    setTeamFavoriteStatus(team);
 
                     Fragment leagueDetailFragment = fragmentManager.findFragmentByTag(LEAGUE_DETAIL_FRAGMENT);
                     Fragment teamDetailFragment = TeamDetailFragment.newInstance(team,eventsList,seasonsList);
@@ -323,109 +318,40 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                             .replace(leagueDetailFragment.getId(),teamDetailFragment,TEAM_DETAIL_FRAGMENT)
                             .addToBackStack(LEAGUE_DETAIL_FRAGMENT).commit();
 
-                }else{
+                    progressDialog.cancel();
 
+                }else{
+                    showDialog(getResources().getString(R.string.error_type),
+                            getResources().getString(R.string.api_response_not_successful_msg));
+                    progressDialog.cancel();
                 }
             }
 
             @Override
             public void onFailure(Call<Seasons> call, Throwable t) {
-
+                showDialog(getResources().getString(R.string.error_type),
+                        getResources().getString(R.string.api_call_error_msg)+t.getMessage());
+                progressDialog.cancel();
             }
         });
-
-
-//        apiInterface.getLeagueSeasons(team.getIdLeague()).enqueue(new Callback<Seasons>() {
-//            @Override
-//            public void onResponse(Call<Seasons> call, Response<Seasons> response) {
-//                if(response.isSuccessful()){
-//                    team.resetTeamEvent();
-//                    List<SeasonsItem> seasons = response.body().getSeasons();
-//                    Observable.fromIterable(seasons).concatMap(new Function<SeasonsItem, ObservableSource<Events>>() {
-//                        @Override
-//                        public ObservableSource<Events> apply(SeasonsItem seasonsItem) throws Exception {
-//                            return apiInterface.getLeagueSeasonEvents(team.getIdLeague(),seasonsItem.getStrSeason()).map(new Function<Events, Events>() {
-//                                @Override
-//                                public Events apply(Events events) throws Exception {
-//                                    return events;
-//                                }
-//                            });
-//                        }
-//                    }).subscribe(new Observer<Events>() {
-//                        @Override
-//                        public void onSubscribe(Disposable d) {
-//                            teamSeasonDisposable=d;
-//                        }
-//
-//                        @Override
-//                        public void onNext(Events events) {
-//                            Log.d(TAG,"Got matches for season: " + events.getEvents().get(0).getStrSeason());
-//
-//                            team.addTeamEvent(events);
-//                        }
-//
-//                        @Override
-//                        public void onError(Throwable e) {
-//                            showDialog(getResources().getString(R.string.error_type),
-//                                    getResources().getString(R.string.api_call_error_msg)+e.getMessage());
-//                        }
-//
-//                        @Override
-//                        public void onComplete() {
-//                            Log.d(TAG,"Got all matches for team: " + team.getStrTeam());
-//
-////                            setTeamFavoriteStatus(team);
-//
-////                            ArrayList<EventsItem> teamEventList =team.getTeamEvents();
-////
-////                            for(EventsItem event:teamEventList){
-////                                for (TeamsItem team:teamsList.getTeams()){
-////                                    if(event.getStrHomeTeam().equals(team.getStrTeam())){
-////                                        event.setHomeBadge(team.getStrTeamBadge());
-////                                    }
-////                                    if(event.getStrAwayTeam().equals(team.getStrTeam())){
-////                                        event.setAwayBadge(team.getStrTeamBadge());
-////                                    }
-////                                }
-////                            }
-//
-//                            Fragment leagueDetailFragment = fragmentManager.findFragmentByTag(LEAGUE_DETAIL_FRAGMENT);
-//                            Fragment teamDetailFragment = TeamDetailFragment.newInstance(team,team.getTeamEvents());
-//                            fragmentManager.beginTransaction()
-//                                    .replace(leagueDetailFragment.getId(),teamDetailFragment,TEAM_DETAIL_FRAGMENT)
-//                                    .addToBackStack(LEAGUE_DETAIL_FRAGMENT).commit();
-//                        }
-//                    });
-//                }else{
-//
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<Seasons> call, Throwable t) {
-//                showDialog(getResources().getString(R.string.error_type),
-//                        getResources().getString(R.string.api_call_error_msg)+t.getMessage());
-//            }
-//        });
-
-
-    }
-
-    private void setTeamFavoriteStatus(TeamsItem team) {
-        ArrayList<String> favorites = db.getFavorites();
-
-        for(String teamId: favorites){
-            if(team.getIdTeam().equals(teamId)){
-                team.setFavorite(true);
-            }
-        }
     }
 
     @Override
     public void onFavoriteSaveInteraction(TeamsItem team) {
-        Log.d(TAG,"Save favorite: " + team.getStrTeam());
+        Log.d(TAG, "Save favorite: " + team.getStrTeam());
 
-        db.saveFavorite(team.getIdTeam());
+        favoriteList = db.getFavorites();
+
+        if (favoriteList.size() < 3) {
+            db.saveFavorite(team.getIdTeam());
+        } else {
+            if(db.getSubscription().isEmpty()) {
+                showDialog(getResources().getString(R.string.subscribe_type), getResources().getString(R.string.subscription_msg));
+            }else if(db.getSubscription().get(0).equals(getResources().getString(R.string.subscription_key))){
+                db.saveFavorite(team.getIdTeam());
+            }
+        }
+
     }
 
     @Override
@@ -439,6 +365,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     public void onFavoriteTeamSelectInteraction(final TeamsItem team) {
         Log.d(TAG,"Selected: " + team.getStrTeam());
 
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
 
         //Get the selected league's teams and events
         Observable<Teams> teamsObservable = apiInterface.getLeagueTeams(team.getIdLeague())
@@ -476,6 +403,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
             public void onError(Throwable e) {
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+e.getMessage());
+                progressDialog.cancel();
             }
 
             @Override
@@ -488,20 +416,12 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                             if(response.isSuccessful()){
                                 seasonsList = response.body();
 
+                                //NOTE: Using Event object helper method to filter the events only containing the selected team
+                                eventsList.setTeamEvents(team);
+
                                 setTeamsBadges();
 
                                 setTeamFavoriteStatus(team);
-
-                                for(EventsItem event:eventsList.getEvents()){
-                                    for (TeamsItem team:teamsList.getTeams()){
-                                        if(event.getStrHomeTeam().equals(team.getStrTeam())){
-                                            event.setHomeBadge(team.getStrTeamBadge());
-                                        }
-                                        if(event.getStrAwayTeam().equals(team.getStrTeam())){
-                                            event.setAwayBadge(team.getStrTeamBadge());
-                                        }
-                                    }
-                                }
 
                                 Fragment favoriteListFragment = fragmentManager.findFragmentByTag(FAVORITE_LIST_FRAGMENT);
                                 Fragment favoriteTeamDetailFragment = FavoriteTeamDetailFragment.newInstance(team,eventsList,seasonsList);
@@ -510,14 +430,20 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                                         .addToBackStack(FAVORITE_LIST_FRAGMENT).commit();
                                 actionBar.hide();
 
-                            }else{
+                                progressDialog.cancel();
 
+                            }else{
+                                showDialog(getResources().getString(R.string.error_type),
+                                        getResources().getString(R.string.api_response_not_successful_msg));
+                                progressDialog.cancel();
                             }
                         }
 
                         @Override
                         public void onFailure(Call<Seasons> call, Throwable t) {
-
+                            showDialog(getResources().getString(R.string.error_type),
+                                    getResources().getString(R.string.api_call_error_msg)+t.getMessage());
+                            progressDialog.cancel();
                         }
                     });
 
@@ -526,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 }else{
                     showDialog(getResources().getString(R.string.info_type),
                             getResources().getString(R.string.no_content_msg));
+                    progressDialog.cancel();
                 }
             }
         });
@@ -584,8 +511,18 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
         }
     }
 
-    public void setupHomeScreen(String sport){
+    private void setTeamFavoriteStatus(TeamsItem team) {
+        ArrayList<String> favorites = db.getFavorites();
 
+        for(String teamId: favorites){
+            if(team.getIdTeam().equals(teamId)){
+                team.setFavorite(true);
+            }
+        }
+    }
+
+    public void setupHomeScreen(String sport){
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
@@ -610,8 +547,11 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                     fragmentManager.beginTransaction()
                             .replace(R.id.lower_container, leagueListFragment, LEAGUE_LIST_FRAGMENT)
                             .addToBackStack(null).commit();
+                    progressDialog.cancel();
                 }else{
-
+                    showDialog(getResources().getString(R.string.error_type),
+                            getResources().getString(R.string.api_response_not_successful_msg));
+                    progressDialog.cancel();
                 }
             }
 
@@ -619,12 +559,13 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
             public void onFailure(Call<Countries> call, Throwable t) {
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
+                progressDialog.cancel();
             }
         });
     }
 
     public void updateHomeScreen(String sport){
-
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
         apiInterface.getLeagues(sport).enqueue(new Callback<Countries>() {
             @Override
             public void onResponse(Call<Countries> call, Response<Countries> response) {
@@ -633,9 +574,11 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                     LeagueListFragment leagueListFragment = LeagueListFragment.newInstance(leaguesList);
                     fragmentManager.beginTransaction()
                             .replace(R.id.lower_container, leagueListFragment, LEAGUE_LIST_FRAGMENT).commit();
-
+                    progressDialog.cancel();
                 }else{
-
+                    showDialog(getResources().getString(R.string.error_type),
+                            getResources().getString(R.string.api_response_not_successful_msg));
+                    progressDialog.cancel();
                 }
             }
 
@@ -643,12 +586,14 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
             public void onFailure(Call<Countries> call, Throwable t) {
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
+                progressDialog.cancel();
             }
         });
 
     }
 
     private void setupFavoriteScreen() {
+        progressDialog.show(fragmentManager,PROGRESS_DIALOG);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -691,9 +636,24 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
             }
 
             @Override
-            public void onError(Throwable e) {
-                showDialog(getResources().getString(R.string.error_type),
-                        getResources().getString(R.string.api_call_error_msg)+e.getMessage());
+            public void onError(final Throwable e) {
+                new Thread()
+                {
+                    public void run()
+                    {
+                        MainActivity.this.runOnUiThread(new Runnable()
+                        {
+                            public void run()
+                            {
+                                //Do your UI operations like dialog opening or Toast here
+                                showDialog(getResources().getString(R.string.error_type),
+                                        getResources().getString(R.string.api_call_error_msg)+e.getMessage());
+                                progressDialog.cancel();
+                            }
+                        });
+                    }
+                }.start();
+
             }
 
             @Override
@@ -703,6 +663,23 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 FavoriteListFragment favoriteListFragment = FavoriteListFragment.newInstance(favoriteTeams);
                 fragmentManager.beginTransaction()
                         .replace(containerFragmentId, favoriteListFragment, FAVORITE_LIST_FRAGMENT).commit();
+
+                //https://stackoverflow.com/questions/17379002/java-lang-runtimeexception-cant-create-handler-inside-thread-that-has-not-call
+                new Thread()
+                {
+                    public void run()
+                    {
+                        MainActivity.this.runOnUiThread(new Runnable()
+                        {
+                            public void run()
+                            {
+                                //Do your UI operations like dialog opening or Toast here
+                                progressDialog.cancel();
+                            }
+                        });
+                    }
+                }.start();
+
             }
         });
     }
@@ -722,26 +699,53 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     }
 
     public void showDialog(String type, String message) {
+
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
 
         switch (type){
             case "error":
                 alertDialogBuilder.setTitle(getResources().getString(R.string.error_title));
                 alertDialogBuilder.setMessage(message);
+                alertDialogBuilder.setPositiveButton(getResources()
+                        .getString(R.string.dismiss_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
                 break;
             case "info":
                 alertDialogBuilder.setTitle(getResources().getString(R.string.info_title));
                 alertDialogBuilder.setMessage(message);
+                alertDialogBuilder.setPositiveButton(getResources()
+                        .getString(R.string.dismiss_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                break;
+            case "subscribe":
+                alertDialogBuilder.setTitle(getResources().getString(R.string.subscription_title));
+                alertDialogBuilder.setMessage(message);
+                alertDialogBuilder.setPositiveButton(getResources()
+                        .getString(R.string.yes_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        db.saveSubscription(getResources().getString(R.string.subscription_key));
+                    }
+                });
+                alertDialogBuilder.setNegativeButton(getResources()
+                        .getString(R.string.no_button), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
                 break;
         }
 
-        alertDialogBuilder.setPositiveButton(getResources()
-                .getString(R.string.alert_button), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
 
-            }
-        });
         AlertDialog errorDialog = alertDialogBuilder.create();
         errorDialog.show();
     }

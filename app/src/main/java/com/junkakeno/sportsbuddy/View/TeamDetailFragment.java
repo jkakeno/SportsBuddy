@@ -83,7 +83,10 @@ public class TeamDetailFragment extends Fragment implements AdapterView.OnItemSe
         TextView country = view.findViewById(R.id.team_country);
         TextView league = view.findViewById(R.id.team_league);
         TextView foundedYear = view.findViewById(R.id.team_founded);
+        TextView noEvent = view.findViewById(R.id.no_event_msg);
         final ImageView teamImage = view.findViewById(R.id.team_image);
+
+
         seasonSpinner = view.findViewById(R.id.season_spinner);
 
         seasonSpinner.setOnItemSelectedListener(this);
@@ -117,9 +120,14 @@ public class TeamDetailFragment extends Fragment implements AdapterView.OnItemSe
         seasonSpinner.setAdapter(seasonAdapter);
 
 
-        adapter = new TeamEventAdapter(getActivity(), events, listener);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(adapter);
+        if(!events.getTeamEvents().isEmpty()) {
+            noEvent.setVisibility(View.INVISIBLE);
+            adapter = new TeamEventAdapter(getActivity(), events, listener);
+            recyclerView.setLayoutManager(layoutManager);
+            recyclerView.setAdapter(adapter);
+        }else{
+            noEvent.setVisibility(View.VISIBLE);
+        }
 
         return view;
 
@@ -143,8 +151,9 @@ public class TeamDetailFragment extends Fragment implements AdapterView.OnItemSe
         super.onResume();
         Log.d(TAG,"onResume");
 
-
-        adapter.notifyDataSetChanged();
+        if(!events.getTeamEvents().isEmpty()) {
+            adapter.notifyDataSetChanged();
+        }
 
         favorite.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -50,8 +50,10 @@ public class Events implements Parcelable{
 	public void setTeamEvents(TeamsItem team) {
 		List<EventsItem> teamEvent = new ArrayList<>();
 		for(EventsItem event:events){
-			if(event.getStrHomeTeam().equals(team.getStrTeam()) ||
-					event.getStrAwayTeam().equals(team.getStrTeam())){
+			if(event.getStrHomeTeam().equals(team.getStrTeam())){
+				teamEvent.add(event);
+			}
+			if(event.getStrAwayTeam().equals(team.getStrTeam())){
 				teamEvent.add(event);
 			}
 		}

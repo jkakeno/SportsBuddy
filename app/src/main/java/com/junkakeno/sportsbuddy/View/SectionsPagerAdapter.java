@@ -1,6 +1,8 @@
 package com.junkakeno.sportsbuddy.View;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
@@ -45,4 +47,13 @@ public class SectionsPagerAdapter extends FragmentStatePagerAdapter {
         return mFragmentTitles.get(position);
     }
 
+
+    //To solve Transaction Too Large Exception when presing home button
+    //https://stackoverflow.com/questions/39098590/android-os-transactiontoolargeexception-on-nougat
+//    @Override
+//    public Parcelable saveState() {
+//        Bundle bundle = (Bundle) super.saveState();
+//        bundle.putParcelableArray("states", null); // Never maintain any states from the base class, just null it out
+//        return bundle;
+//    }
 }

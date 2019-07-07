@@ -21,6 +21,7 @@ public class LeagueAdapter extends RecyclerView.Adapter<LeagueAdapter.ViewHolder
     Context context;
     Countries leagues;
     InteractionListener listener;
+    int row_index;
 
     public LeagueAdapter(Context context, Countries leagues, InteractionListener listener) {
         this.context = context;
@@ -36,7 +37,7 @@ public class LeagueAdapter extends RecyclerView.Adapter<LeagueAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
 
         final CountrysItem league = leagues.getCountrys().get(position);
         holder.leagueName.setText(league.getStrLeague());
@@ -62,8 +63,18 @@ public class LeagueAdapter extends RecyclerView.Adapter<LeagueAdapter.ViewHolder
             @Override
             public void onClick(View view) {
                 listener.onLeagueSelectInteraction(league);
+                row_index = position;
+                notifyDataSetChanged();
             }
         });
+
+        if(row_index==position){
+            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorLightGray));
+        }
+        else
+        {
+            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorWhite));
+        }
 
     }
 

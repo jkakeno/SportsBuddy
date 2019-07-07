@@ -40,7 +40,7 @@ public class TeamEventAdapter extends RecyclerView.Adapter<TeamEventAdapter.View
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        final EventsItem eventsItem = events.getEvents().get(position);
+        final EventsItem eventsItem = events.getTeamEvents().get(position);
         String eventDate = eventsItem.getDateEvent();
         String homeTeam = eventsItem.getStrHomeTeam();
         String awayTeam = eventsItem.getStrAwayTeam();
@@ -63,7 +63,7 @@ public class TeamEventAdapter extends RecyclerView.Adapter<TeamEventAdapter.View
 
             @Override
             public void onError() {
-//                holder.homeBadge.setImageResource(R.drawable.ic_default_icon);
+                holder.homeBadge.setImageResource(R.drawable.ic_default_icon);
             }
         });
 
@@ -75,7 +75,7 @@ public class TeamEventAdapter extends RecyclerView.Adapter<TeamEventAdapter.View
 
             @Override
             public void onError() {
-//                holder.homeBadge.setImageResource(R.drawable.ic_default_icon);
+                holder.homeBadge.setImageResource(R.drawable.ic_default_icon);
             }
         });
 
@@ -84,7 +84,7 @@ public class TeamEventAdapter extends RecyclerView.Adapter<TeamEventAdapter.View
     @Override
     public int getItemCount() {
         if(events !=null) {
-            return events.getEvents().size();
+            return events.getTeamEvents().size();
         }else{
             return 1;
         }

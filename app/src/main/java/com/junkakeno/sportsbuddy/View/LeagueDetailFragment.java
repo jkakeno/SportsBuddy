@@ -109,4 +109,6 @@ public class LeagueDetailFragment extends Fragment {
         listener = null;
     }
 
+
+
 }

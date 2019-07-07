@@ -133,19 +133,37 @@
 
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                        <Spinner
-                            android:id="@+id/season_spinner"
-                            android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <RelativeLayout
+                            android:id="@+id/season_spinner_container"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_margin="10dp" />
+                            android:background="@color/colorLightGray">
+                            <Spinner
+                                android:id="@+id/season_spinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="10dp"
+                                android:layout_marginBottom="20dp"
+                                android:padding="5dp"/>
+                        </RelativeLayout>
+
+                        <TextView
+                            android:id="@+id/no_event_msg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true"
+                            android:layout_below="@+id/season_spinner_container"
+                            android:layout_marginTop="100dp"
+                            android:layout_marginBottom="100dp"
+                            android:text="@string/no_event_msg"/>
 
                         <android.support.v7.widget.RecyclerView
                             android:id="@+id/team_recycler_view"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@color/colorWhite"
-                            android:layout_below="@+id/season_spinner"
+                            android:layout_below="@+id/season_spinner_container"
                             app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
                     </RelativeLayout>
 
@@ -153,10 +171,7 @@
 
             </LinearLayout>
 
-
     </FrameLayout>
-
-
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/favorite"

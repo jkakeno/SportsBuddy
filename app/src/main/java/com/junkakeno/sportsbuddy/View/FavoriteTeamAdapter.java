@@ -23,6 +23,7 @@ public class FavoriteTeamAdapter extends RecyclerView.Adapter<FavoriteTeamAdapte
     Context context;
     ArrayList<TeamsItem> teams;
     InteractionListener listener;
+    int row_index;
 
     public FavoriteTeamAdapter(Context context, ArrayList<TeamsItem> teams, InteractionListener listener) {
         this.context = context;
@@ -38,7 +39,7 @@ public class FavoriteTeamAdapter extends RecyclerView.Adapter<FavoriteTeamAdapte
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
 
         final TeamsItem team = teams.get(position);
         holder.teamName.setText(team.getStrTeam());
@@ -64,8 +65,18 @@ public class FavoriteTeamAdapter extends RecyclerView.Adapter<FavoriteTeamAdapte
             @Override
             public void onClick(View view) {
                 listener.onFavoriteTeamSelectInteraction(team);
+                row_index = position;
+                notifyDataSetChanged();
             }
         });
+
+        if(row_index==position){
+            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorLightGray));
+        }
+        else
+        {
+            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorWhite));
+        }
 
     }
 

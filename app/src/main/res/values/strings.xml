@@ -2,20 +2,26 @@
     <string name="app_name">SportsBuddy</string>
     <string name="title_home">Home</string>
     <string name="title_favorite">Favorite</string>
-    <string name="tab_1">Tab 1</string>
-    <string name="tab_2">Tab 2</string>
     <string name="error_title">Error</string>
     <string name="info_title">Information</string>
-    <string name="alert_button">Dismiss</string>
+    <string name="subscription_title">Subscription</string>
+    <string name="dismiss_button">Dismiss</string>
+    <string name="yes_button">YES</string>
+    <string name="no_button">NO</string>
+    <string name="subscription_key">isSubscribed</string>
     <string name="error_type">error</string>
     <string name="info_type">info</string>
-    <string name="api_call_error_msg">Sorry something went wrong when downloading data. </string>
-    <string name="no_content_msg">Sorry there\'s no content available to display for this selection. Please select another one.</string>
-    <string name="no_favorites_msg">There aren\'t favorites saved</string>
+    <string name="subscribe_type">subscribe</string>
     <string name="counrty_title">Country: </string>
     <string name="league_title">League: </string>
     <string name="founded_year_title">Founded: </string>
     <string name="team_tab_title">Teams</string>
     <string name="matches_tab_title">Matches</string>
 
+    <string name="api_response_not_successful_msg">Sorry it appears that the response was not successful. Please try again later.</string>
+    <string name="subscription_msg">To add more than 3 favorites you need a subscription. Do you want to subscribe?</string>
+    <string name="api_call_error_msg">Sorry something went wrong when downloading data. </string>
+    <string name="no_content_msg">Sorry there\'s no content available to display for this selection. Please select another one.</string>
+    <string name="no_favorites_msg">There aren\'t favorites saved</string>
+    <string name="no_event_msg">There is no data for this season.</string>
 </resources>

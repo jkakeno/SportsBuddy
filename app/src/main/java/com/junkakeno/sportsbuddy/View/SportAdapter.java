@@ -59,9 +59,6 @@ public class SportAdapter extends RecyclerView.Adapter<SportAdapter.ViewHolder> 
                 break;
         }
 
-//        holder.navigationButtonTitle.setText(title);
-
-
         holder.navigationButtonIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -71,13 +68,13 @@ public class SportAdapter extends RecyclerView.Adapter<SportAdapter.ViewHolder> 
             }
         });
 
-//        if(row_index==position){
-//            holder.navigationButton.setBackgroundColor(context.getColor(R.color.colorAccent));
-//        }
-//        else
-//        {
-//            holder.navigationButton.setBackgroundColor(context.getColor(R.color.colorPrimary));
-//        }
+        if(row_index==position){
+            holder.navigationButton.setBackgroundColor(context.getResources().getColor(R.color.colorLightGray));
+        }
+        else
+        {
+            holder.navigationButton.setBackgroundColor(context.getResources().getColor(R.color.colorWhite));
+        }
     }
 
     @Override
@@ -92,14 +89,12 @@ public class SportAdapter extends RecyclerView.Adapter<SportAdapter.ViewHolder> 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         ImageView navigationButtonIcon;
-//        TextView navigationButtonTitle;
         View navigationButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
             navigationButtonIcon =itemView.findViewById(R.id.sport_icon);
-//            navigationButtonTitle =itemView.findViewById(R.id.sport_label);
-//            navigationButton = itemView.findViewById(R.id.navigationButton);
+            navigationButton = itemView.findViewById(R.id.sport_item);
         }
     }
 }

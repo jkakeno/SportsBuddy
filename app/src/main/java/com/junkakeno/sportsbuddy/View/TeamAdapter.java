@@ -25,6 +25,7 @@ public class TeamAdapter extends RecyclerView.Adapter<TeamAdapter.ViewHolder> {
     Context context;
     Teams teams;
     InteractionListener listener;
+    int row_index;
 
     public TeamAdapter(Context context, Teams teams, InteractionListener listener) {
         this.context = context;
@@ -40,7 +41,7 @@ public class TeamAdapter extends RecyclerView.Adapter<TeamAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
 
         final TeamsItem team = teams.getTeams().get(position);
         holder.teamName.setText(team.getStrTeam());
@@ -66,8 +67,18 @@ public class TeamAdapter extends RecyclerView.Adapter<TeamAdapter.ViewHolder> {
             @Override
             public void onClick(View view) {
                 listener.onTeamSelectInteraction(team);
+                row_index = position;
+                notifyDataSetChanged();
             }
         });
+
+        if(row_index==position){
+            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorLightGray));
+        }
+        else
+        {
+            holder.view.setBackgroundColor(context.getResources().getColor(R.color.colorWhite));
+        }
 
     }
 
