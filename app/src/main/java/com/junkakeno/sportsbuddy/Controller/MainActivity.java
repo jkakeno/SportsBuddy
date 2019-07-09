@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     ArrayList<String> favoriteList;
     ArrayList<TeamsItem> favoriteTeams;
     ProgressBarDialog progressDialog = new ProgressBarDialog();
-
+    final boolean[] progressDialogIsShowing = new boolean[1];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
         favoriteList = db.getFavorites();
 
         progressDialog.show(fragmentManager,PROGRESS_DIALOG);
+        progressDialogIsShowing[0] =true;
 
         ContainerFragment containerFragment = new ContainerFragment();
         fragmentManager.beginTransaction().replace(R.id.root, containerFragment, CONTAINER_FRAGMENT)
@@ -108,11 +109,13 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 if(response.isSuccessful()){
                     sportsList = response.body();
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] = false;
                     setupHomeScreen(sportsList.getDefaultSport());
                 }else{
                     showDialog(getResources().getString(R.string.error_type),
                             getResources().getString(R.string.api_response_not_successful_msg));
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] = false;
                 }
             }
 
@@ -120,6 +123,8 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
             public void onFailure(Call<Sports> call, Throwable t) {
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
+                progressDialog.cancel();
+                progressDialogIsShowing[0] = false;
             }
         });
     }
@@ -178,9 +183,9 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     public void onLeagueSelectInteraction(CountrysItem league) {
         Log.d(TAG,"Selected: " + league.getStrLeague() + " id: " + league.getIdLeague());
 
-        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
-        if(progress!=null&&!progress.isAdded()) {
+        if(!progressDialogIsShowing[0]){
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
 
         //Get the selected league's teams and events
@@ -220,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                  showDialog(getResources().getString(R.string.error_type),
                          getResources().getString(R.string.api_call_error_msg)+e.getMessage());
                  progressDialog.cancel();
+                 progressDialogIsShowing[0] =false;
              }
 
              @Override
@@ -237,10 +243,12 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                              .addToBackStack(CONTAINER_FRAGMENT).commit();
                      actionBar.hide();
                      progressDialog.cancel();
+                     progressDialogIsShowing[0] =false;
                  }else{
                      showDialog(getResources().getString(R.string.info_type),
                              getResources().getString(R.string.no_content_msg));
                      progressDialog.cancel();
+                     progressDialogIsShowing[0] =false;
                  }
 
              }
@@ -250,9 +258,9 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
 
     @Override
     public void onSeasonSelectInteraction(String season, String leagueId, final TeamsItem team) {
-        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
-        if(progress!=null&&!progress.isAdded()) {
+        if(!progressDialogIsShowing[0]){
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
 
         apiInterface.getLeagueSeasonEvents(leagueId,season).enqueue(new Callback<Events>() {
@@ -277,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                                 .replace(leagueDetailFragment.getId(), teamDetailFragment, TEAM_DETAIL_FRAGMENT)
                                 .addToBackStack(LEAGUE_DETAIL_FRAGMENT).commit();
                         progressDialog.cancel();
+                        progressDialogIsShowing[0] =false;
                     }
 
                     if(favoriteTeamDetailFrg!=null&&favoriteTeamDetailFrg.isVisible()) {
@@ -287,11 +296,13 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                                 .addToBackStack(FAVORITE_LIST_FRAGMENT).commit();
                         actionBar.hide();
                         progressDialog.cancel();
+                        progressDialogIsShowing[0] =false;
                     }
                 }else{
                     showDialog(getResources().getString(R.string.error_type),
                             getResources().getString(R.string.api_response_not_successful_msg));
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }
             }
 
@@ -300,6 +311,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
                 progressDialog.cancel();
+                progressDialogIsShowing[0] =false;
             }
         });
     }
@@ -307,9 +319,9 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     @Override
     public void onTeamSelectInteraction(final TeamsItem team) {
         Log.d(TAG,"Selected: " + team.getStrTeam() + " id: " + team.getIdTeam());
-        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
-        if(progress!=null&&!progress.isAdded()) {
+        if(!progressDialogIsShowing[0]){
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
         apiInterface.getLeagueSeasons(team.getIdLeague()).enqueue(new Callback<Seasons>() {
             @Override
@@ -331,11 +343,13 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                             .addToBackStack(LEAGUE_DETAIL_FRAGMENT).commit();
 
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
 
                 }else{
                     showDialog(getResources().getString(R.string.error_type),
                             getResources().getString(R.string.api_response_not_successful_msg));
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }
             }
 
@@ -344,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
                 progressDialog.cancel();
+                progressDialogIsShowing[0] =false;
             }
         });
     }
@@ -377,9 +392,9 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     public void onFavoriteTeamSelectInteraction(final TeamsItem team) {
         Log.d(TAG,"Selected: " + team.getStrTeam());
 
-        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
-        if(progress!=null&&!progress.isAdded()) {
+        if(!progressDialogIsShowing[0]){
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
 
         //Get the selected league's teams and events
@@ -419,6 +434,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+e.getMessage());
                 progressDialog.cancel();
+                progressDialogIsShowing[0] =false;
             }
 
             @Override
@@ -446,11 +462,13 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                                 actionBar.hide();
 
                                 progressDialog.cancel();
+                                progressDialogIsShowing[0] =false;
 
                             }else{
                                 showDialog(getResources().getString(R.string.error_type),
                                         getResources().getString(R.string.api_response_not_successful_msg));
                                 progressDialog.cancel();
+                                progressDialogIsShowing[0] =false;
                             }
                         }
 
@@ -459,6 +477,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                             showDialog(getResources().getString(R.string.error_type),
                                     getResources().getString(R.string.api_call_error_msg)+t.getMessage());
                             progressDialog.cancel();
+                            progressDialogIsShowing[0] =false;
                         }
                     });
 
@@ -468,6 +487,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                     showDialog(getResources().getString(R.string.info_type),
                             getResources().getString(R.string.no_content_msg));
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }
             }
         });
@@ -535,9 +555,9 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
     }
 
     public void setupHomeScreen(String sport){
-        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
-        if(progress!=null&&!progress.isAdded()) {
+        if(!progressDialogIsShowing[0]){
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitleTextColor(getResources().getColor(R.color.colorWhite));
@@ -565,10 +585,12 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                             .replace(R.id.lower_container, leagueListFragment, LEAGUE_LIST_FRAGMENT)
                             .addToBackStack(null).commit();
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }else{
                     showDialog(getResources().getString(R.string.error_type),
                             getResources().getString(R.string.api_response_not_successful_msg));
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }
             }
 
@@ -577,6 +599,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
                 progressDialog.cancel();
+                progressDialogIsShowing[0] =false;
             }
         });
     }
@@ -585,6 +608,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
         Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
         if(progress!=null&&!progress.isAdded()) {
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
         apiInterface.getLeagues(sport).enqueue(new Callback<Countries>() {
             @Override
@@ -595,10 +619,12 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                     fragmentManager.beginTransaction()
                             .replace(R.id.lower_container, leagueListFragment, LEAGUE_LIST_FRAGMENT).commit();
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }else{
                     showDialog(getResources().getString(R.string.error_type),
                             getResources().getString(R.string.api_response_not_successful_msg));
                     progressDialog.cancel();
+                    progressDialogIsShowing[0] =false;
                 }
             }
 
@@ -607,15 +633,16 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                 showDialog(getResources().getString(R.string.error_type),
                         getResources().getString(R.string.api_call_error_msg)+t.getMessage());
                 progressDialog.cancel();
+                progressDialogIsShowing[0] =false;
             }
         });
 
     }
 
     private void setupFavoriteScreen() {
-        Fragment progress = fragmentManager.findFragmentByTag(PROGRESS_DIALOG);
-        if(progress!=null&&!progress.isAdded()) {
+        if(!progressDialogIsShowing[0]){
             progressDialog.show(fragmentManager, PROGRESS_DIALOG);
+            progressDialogIsShowing[0] =true;
         }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -672,6 +699,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                                 showDialog(getResources().getString(R.string.error_type),
                                         getResources().getString(R.string.api_call_error_msg)+e.getMessage());
                                 progressDialog.cancel();
+                                progressDialogIsShowing[0] =false;
                             }
                         });
                     }
@@ -698,6 +726,7 @@ public class MainActivity extends AppCompatActivity implements InteractionListen
                             {
                                 //Do your UI operations like dialog opening or Toast here
                                 progressDialog.cancel();
+                                progressDialogIsShowing[0] =false;
                             }
                         });
                     }
